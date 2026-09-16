@@ -1,0 +1,501 @@
+:root {
+  color-scheme: dark;
+  --espacio: #02060f;
+  --tinta: #e6eff7;
+  --tinta-suave: #8fa4b9;
+  --superficie: rgb(4 11 22 / 0.95);
+  --linea: rgb(143 164 185 / 0.24);
+  --foco: #8fd3ff;
+  --margen: 24px;
+  --ancho-ficha: 360px;
+  --fuente: 'Urbanist Variable', 'Urbanist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--espacio);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 3px;
+}
+
+#universo {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+/* Etiquetas bajo cada astro: repiten el nombre espaciado de los logos de Tandem. */
+
+.etiquetas {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.etiquetas.visible {
+  opacity: 1;
+}
+
+.etiqueta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-left: 0.3em; /* compensa el espacio tras la última letra */
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--tinta);
+  text-shadow:
+    0 0 3px var(--espacio),
+    0 0 12px var(--espacio);
+  transition:
+    opacity 0.3s ease,
+    color 0.3s ease;
+  will-change: transform;
+}
+
+.etiqueta.resaltada {
+  color: #fff;
+}
+
+/* Interfaz */
+
+.interfaz {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.9s ease,
+    visibility 0s linear 0.9s;
+}
+
+.interfaz.visible {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.9s ease;
+}
+
+.cabecera {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: max(var(--margen), env(safe-area-inset-top)) max(var(--margen), env(safe-area-inset-right)) 0
+    max(var(--margen), env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.cabecera > * {
+  pointer-events: auto;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: -6px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.marca img {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--linea);
+  background: rgb(4 11 22 / 0.55);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.boton:hover {
+  border-color: rgb(143 164 185 / 0.5);
+  background: rgb(4 11 22 / 0.85);
+}
+
+.boton svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.boton .icono-seguir,
+.boton[aria-pressed='true'] .icono-pausa {
+  display: none;
+}
+
+.boton[aria-pressed='true'] .icono-seguir {
+  display: block;
+}
+
+.pista {
+  position: fixed;
+  left: 50%;
+  top: calc(max(var(--margen), env(safe-area-inset-top)) + 60px);
+  width: max-content;
+  max-width: calc(100% - 2 * var(--margen));
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: 14px;
+  text-align: center;
+  color: var(--tinta-suave);
+  text-shadow: 0 0 10px var(--espacio);
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.pista.oculta {
+  opacity: 0;
+}
+
+/* Dock de productos */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(var(--margen), env(safe-area-inset-bottom));
+  display: flex;
+  gap: 4px;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--margen));
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  transition: right 0.35s ease;
+}
+
+.dock button {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 8px 10px 14px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--tinta-suave);
+  text-shadow: 0 0 8px var(--espacio);
+  transition: color 0.2s ease;
+}
+
+.dock button canvas {
+  display: block;
+}
+
+.dock button:hover,
+.dock button[aria-current='true'] {
+  color: var(--tinta);
+}
+
+/* El producto enfocado se marca con un cuadrado de su color. */
+.dock button[aria-current='true']::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  background: var(--color);
+  transform: translateX(-50%);
+}
+
+/* Ficha del astro enfocado */
+
+.ficha {
+  position: fixed;
+  top: 50%;
+  right: max(var(--margen), env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  width: var(--ancho-ficha);
+  max-height: calc(100% - 2 * var(--margen) - 72px);
+  overflow-y: auto;
+  padding: 24px 28px 20px;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  transform: translateY(-50%);
+}
+
+.ficha[hidden] {
+  display: none;
+}
+
+.ficha.entrando {
+  animation: entrar-lateral 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes entrar-lateral {
+  from {
+    opacity: 0;
+    transform: translate(16px, -50%);
+  }
+}
+
+.ficha-volver {
+  align-self: flex-start;
+  margin-bottom: 36px;
+}
+
+.ficha-volver svg,
+.ficha-paso svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.ficha-cabecera {
+  display: grid;
+  gap: 24px;
+}
+
+.ficha-emblema canvas {
+  display: block;
+}
+
+.ficha-nombre {
+  margin: 0 0 6px;
+  font-size: 40px;
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.ficha-lema {
+  max-width: 24ch;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.3;
+  color: var(--tinta-suave);
+}
+
+.ficha-lema:empty {
+  display: none;
+}
+
+.ficha-enlace {
+  align-self: flex-start;
+  margin-top: 24px;
+  font-weight: 600;
+  color: var(--foco);
+  text-underline-offset: 4px;
+}
+
+.ficha-enlace[hidden] {
+  display: none;
+}
+
+.ficha-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linea);
+}
+
+.ficha-paso {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0 -6px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+  transition: color 0.2s ease;
+}
+
+.ficha-paso:hover {
+  color: var(--tinta);
+}
+
+.ficha-paso svg {
+  width: 14px;
+  height: 14px;
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.aviso {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  padding: 24px max(24px, calc(50% - 20em));
+  background: var(--espacio);
+  color: var(--tinta);
+  font-size: 18px;
+  text-align: center;
+}
+
+.aviso[hidden] {
+  display: none;
+}
+
+@media (min-width: 820px) {
+  /* Con la ficha abierta, el dock se centra en el espacio libre. */
+  .interfaz[data-ficha] .dock {
+    right: calc(var(--ancho-ficha) + 2 * var(--margen));
+  }
+}
+
+@media (max-width: 819px) {
+  :root {
+    --margen: 16px;
+  }
+
+  .marca {
+    font-size: 18px;
+  }
+
+  .dock button {
+    padding: 6px 6px 12px;
+    font-size: 12px;
+  }
+
+  .dock button canvas {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .pista {
+    top: calc(max(var(--margen), env(safe-area-inset-top)) + 52px);
+    font-size: 13px;
+  }
+
+  .interfaz[data-ficha] .dock,
+  .interfaz[data-ficha] .pista {
+    display: none;
+  }
+
+  .ficha {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 55%;
+    padding: 14px 20px max(14px, env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    transform: none;
+  }
+
+  .ficha.entrando {
+    animation-name: entrar-abajo;
+  }
+
+  .ficha-volver {
+    margin-bottom: 16px;
+  }
+
+  .ficha-cabecera {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ficha-emblema canvas {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .ficha-nombre {
+    font-size: 28px;
+  }
+
+  .ficha-lema {
+    font-size: 16px;
+  }
+
+  .ficha-nav {
+    margin-top: 16px;
+  }
+}
+
+@keyframes entrar-abajo {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
