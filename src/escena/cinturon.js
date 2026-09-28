@@ -1,14 +1,24 @@
 import * as THREE from 'three';
 import { azarConSemilla, normal } from './azar.js';
 
+// Distancia a la cámara (unidades de la escena) a la que un cubo empieza a encogerse y desaparece.
+const CERCA_MAX = 6;
+const CERCA_MIN = 2.5;
+
 /** Cinturón de pequeños cubos entre dos órbitas, iluminado por la estrella. */
 export function crearCinturon(radioMedio, ancho, cantidad = 800) {
   const azar = azarConSemilla(4815);
-  const malla = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.2 }),
-    cantidad,
-  );
+  const material = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.2 });
+  // Los cubos que pasan junto a la cámara se deshacen en polvo en vez de tapar el planeta enfocado.
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      /* glsl */ `#include <begin_vertex>
+      float distanciaCamara = length((modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz);
+      transformed *= smoothstep(${CERCA_MIN.toFixed(1)}, ${CERCA_MAX.toFixed(1)}, distanciaCamara);`,
+    );
+  };
+  const malla = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), material, cantidad);
 
   const matriz = new THREE.Matrix4();
   const posicion = new THREE.Vector3();

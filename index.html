@@ -18,7 +18,7 @@
           <img src="/productos/Tandem_logo.png" alt="" width="28" height="28" />
           <span>T-Universe</span>
         </button>
-        <button id="pausa" class="boton" type="button" aria-pressed="false">
+        <button id="pausa" class="boton boton-pausa" type="button" aria-pressed="false">
           <svg class="icono-pausa" viewBox="0 0 16 16" aria-hidden="true">
             <rect x="3" y="2.5" width="3.4" height="11" />
             <rect x="9.6" y="2.5" width="3.4" height="11" />
@@ -35,25 +35,31 @@
       <nav id="dock" class="dock" aria-label="Productos"></nav>
 
       <aside id="ficha" class="ficha" aria-labelledby="ficha-nombre" hidden>
-        <button id="ficha-volver" class="boton ficha-volver" type="button">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
-          <span>Volver al universo</span>
-        </button>
-        <div class="ficha-cabecera">
-          <div id="ficha-emblema" class="ficha-emblema"></div>
-          <div>
-            <h2 id="ficha-nombre" class="ficha-nombre"></h2>
-            <p id="ficha-lema" class="ficha-lema"></p>
-          </div>
+        <div class="ficha-barra">
+          <button id="ficha-volver" class="ficha-volver" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+            <span>Volver al universo</span>
+          </button>
+          <kbd class="tecla" aria-hidden="true">Esc</kbd>
         </div>
-        <a id="ficha-enlace" class="ficha-enlace" target="_blank" rel="noopener" hidden>Visitar la web</a>
+        <div id="ficha-contenido" class="ficha-contenido">
+          <div id="ficha-emblema" class="ficha-emblema"></div>
+          <h2 id="ficha-nombre" class="ficha-nombre"></h2>
+          <p id="ficha-lema" class="ficha-lema"></p>
+          <a id="ficha-enlace" class="ficha-enlace" target="_blank" rel="noopener" hidden>
+            <span>Visitar la web</span>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 4.5h5.5V10" /></svg>
+          </a>
+        </div>
         <nav class="ficha-nav" aria-label="Otros productos">
           <button id="ficha-anterior" class="ficha-paso" type="button">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
-            <span></span>
+            <span class="ficha-paso-emblema"></span>
+            <span class="ficha-paso-nombre"></span>
           </button>
           <button id="ficha-siguiente" class="ficha-paso" type="button">
-            <span></span>
+            <span class="ficha-paso-nombre"></span>
+            <span class="ficha-paso-emblema"></span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
           </button>
         </nav>

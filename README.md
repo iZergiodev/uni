@@ -21,7 +21,7 @@ npm run build   # genera dist/, lista para subir a cualquier servidor web
 
 ## Uso
 
-- Arrastrar para girar, rueda o pellizco para acercar.
+- Arrastrar para girar, rueda o pellizco para acercar. Al pasar el ratón por un astro aparece su lema.
 - Pulsar un planeta (o su icono en la barra inferior) lo enfoca y abre su ficha; `Esc` vuelve a la vista general
   y las flechas pasan al producto anterior o siguiente.
 - `index.html#T-Stock` abre directamente ese planeta.

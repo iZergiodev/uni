@@ -10,7 +10,7 @@ import { UNIVERSO } from './config.js';
 import { cargarLogos } from './logos.js';
 import { crearCielo } from './escena/cielo.js';
 import { crearEstrella } from './escena/estrella.js';
-import { crearPlaneta } from './escena/planeta.js';
+import { calcularTonos, crearPlaneta } from './escena/planeta.js';
 import { crearCinturon } from './escena/cinturon.js';
 import { montarInterfaz } from './interfaz.js';
 
@@ -103,6 +103,7 @@ async function iniciar() {
     url: '',
     logo: logoTandem,
     hex: logoTandem?.hex ?? '#1697d5',
+    brillo: `#${calcularTonos(estrella.uniformes.uAzul.value).brillo.getHexString()}`,
   };
   const cuerpos = [
     { elemento: elementoTandem, objeto: estrella.grupo, radio: UNIVERSO.radioEstrella, uniformes: estrella.uniformes },
@@ -115,6 +116,7 @@ async function iniciar() {
         url: planeta.producto.url,
         logo: planeta.producto,
         hex: planeta.producto.hex,
+        brillo: `#${planeta.uniformes.uBrillo.value.getHexString()}`,
       },
       objeto: planeta.cuerpo,
       radio: planeta.radio,
@@ -177,14 +179,22 @@ async function iniciar() {
   aplicarLimites();
 
   const radioExterior = (planetas.at(-1)?.radioOrbita ?? UNIVERSO.radioEstrella * 4) + UNIVERSO.radioPlaneta * 2;
-  const vistaGeneral = { aspecto: 0, posicion: new THREE.Vector3() };
+  const vistaGeneral = { aspecto: 0, suelo: 0, posicion: new THREE.Vector3() };
+
+  // Altura de pantalla en la que empieza el dock: ni las etiquetas ni la vista general la cruzan.
+  let bordeDock = innerHeight;
+  const medirDock = () => {
+    bordeDock = interfaz.bordeDock();
+  };
+  medirDock();
 
   // Vista general: la distancia más corta a la que caben todas las órbitas sin quedar bajo el dock.
   // En pantallas verticales no caben sin que los planetas se vuelvan diminutos, así que se
   // acepta recortar las órbitas exteriores por los lados.
   function poseGeneral() {
     const aspecto = innerWidth / innerHeight;
-    if (vistaGeneral.aspecto === aspecto) return vistaGeneral.posicion.clone();
+    const suelo = Math.max(-0.8, 1 - (2 * (bordeDock - 12)) / innerHeight);
+    if (vistaGeneral.aspecto === aspecto && vistaGeneral.suelo === suelo) return vistaGeneral.posicion.clone();
     const elevacion = degToRad(20);
     const direccion = new THREE.Vector3(0, Math.sin(elevacion), Math.cos(elevacion));
     const prueba = new THREE.PerspectiveCamera(camara.fov, aspecto, 0.1, 4000);
@@ -199,11 +209,12 @@ async function iniciar() {
       for (let i = 0; i < 48 && cabe; i++) {
         const angulo = (i / 48) * TAU;
         punto.set(Math.cos(angulo) * radioExterior, 0, Math.sin(angulo) * radioExterior).project(prueba);
-        cabe = Math.abs(punto.x) < 0.94 && punto.y < 0.8 && punto.y > -0.8;
+        cabe = Math.abs(punto.x) < 0.94 && punto.y < 0.8 && punto.y > suelo;
       }
       if (cabe) break;
     }
     vistaGeneral.aspecto = aspecto;
+    vistaGeneral.suelo = suelo;
     vistaGeneral.posicion.copy(direccion).multiplyScalar(distancia);
     return vistaGeneral.posicion.clone();
   }
@@ -259,6 +270,7 @@ async function iniciar() {
     if (!estado.foco) return;
     estado.foco = null;
     interfaz.ocultarFicha();
+    medirDock();
     calcularDesfase();
     iniciarVuelo(null);
     history.replaceState(null, '', location.pathname + location.search);
@@ -405,11 +417,7 @@ async function iniciar() {
   }
 
   // Las etiquetas van bajo cada astro, salvo que caigan sobre el dock: entonces van encima.
-  let limiteEtiquetas = innerHeight;
-  const medirDock = () => {
-    limiteEtiquetas = interfaz.bordeDock() - 8;
-  };
-
+  const ALTO_ETIQUETA = 40; // nombre y lema
   function actualizarEtiquetas() {
     const mostrar = estado.modo === 'libre';
     for (const cuerpo of cuerpos) {
@@ -418,9 +426,11 @@ async function iniciar() {
       let opacidad = estado.foco ? 0.45 : 0.85;
       if (cuerpo === estado.hover) opacidad = 1;
       if (!mostrar || !p.delante || p.tapado || cuerpo === estado.foco) opacidad = 0;
-      let y = p.y + p.radioPx * 1.2 + 10;
-      if (y + 16 > limiteEtiquetas) y = p.y - p.radioPx * 1.2 - 26;
-      etiqueta.style.transform = `translate(${p.x.toFixed(1)}px, ${y.toFixed(1)}px) translateX(-50%)`;
+      const separacion = p.radioPx * 1.2 + 10;
+      const arriba = p.y + separacion + ALTO_ETIQUETA > bordeDock - 8;
+      const y = arriba ? p.y - separacion : p.y + separacion;
+      etiqueta.style.transform = `translate(${p.x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, ${arriba ? -100 : 0}%)`;
+      if (etiqueta.classList.contains('arriba') !== arriba) etiqueta.classList.toggle('arriba', arriba);
       if (etiqueta.dataset.opacidad !== String(opacidad)) {
         etiqueta.style.opacity = String(opacidad);
         etiqueta.dataset.opacidad = String(opacidad);
@@ -471,6 +481,8 @@ async function iniciar() {
     camara.aspect = innerWidth / innerHeight;
     renderer.setSize(innerWidth, innerHeight);
     composer.setSize(innerWidth, innerHeight);
+    medirDock();
+    if (estado.vuelo && !estado.vuelo.cuerpo) estado.vuelo.destino = poseGeneral();
     calcularDesfase();
     estado.desfase.copy(estado.desfaseObjetivo);
   });

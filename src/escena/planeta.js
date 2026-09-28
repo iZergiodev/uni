@@ -54,6 +54,7 @@ export function crearPlaneta(producto, parametros, globales) {
         }
       `,
       fragmentShader: /* glsl */ `
+        uniform float uTiempo;
         uniform vec3 uArribaCamara;
         uniform sampler2D uMascara;
         uniform float uMitad;
@@ -121,6 +122,12 @@ export function crearPlaneta(producto, parametros, globales) {
           float grano = fbm(p * 6.0 + uSemilla * 2.3, 3);
           vec3 relleno = uColor * (0.9 + 0.14 * bandas + 0.08 * grano);
 
+          // Velo de nubes muy tenue, estirado a lo largo de los paralelos y a la deriva: da vida
+          // al planeta sin apartarlo del color del logo.
+          vec3 q = p * vec3(2.2, 5.5, 2.2) + vec3(uSemilla * 0.7, 0.0, uTiempo * 0.015);
+          float nubes = fbm(q + vec3(fbm(q * 0.9 + uSemilla, 2) * 0.8), 4) * 0.5 + 0.5;
+          relleno = mix(relleno, uBrillo, smoothstep(0.52, 0.78, nubes) * 0.16);
+
           if (pared > 0.5) {
             // Roca del interior: más oscura y con vetas; junto a la superficie asoma la corteza rota.
             float vetas = fbm(puntoRoca * 9.0, 3) * 0.5 + 0.5;
@@ -136,7 +143,9 @@ export function crearPlaneta(producto, parametros, globales) {
           // Luz de la estrella; el logo blanco conserva brillo en la cara nocturna para leerse.
           // El fondo del hueco queda en penumbra para que se note la profundidad.
           float luz = mix(0.3, 1.0, dia) * mix(1.0, 0.5, pared * smoothstep(0.0, 0.35, hondura));
-          vec3 color = mix(relleno * luz, vec3(0.9) * max(luz, 0.85), glifo);
+          // Oscurecimiento suave hacia el borde: el relleno se lee como una esfera y no como un disco.
+          float limbo = mix(0.72, 1.0, pow(max(dot(N, Vf), 0.0), 0.5));
+          vec3 color = mix(relleno * luz * limbo, vec3(0.9) * max(luz, 0.85), glifo);
           float superficie = (1.0 - smoothstep(0.0, 0.5, glifo)) * (1.0 - pared);
           vec3 H = normalize(L + Vf);
           color += uBrillo * pow(max(dot(N, H), 0.0), 50.0) * 0.1 * dia * superficie;
@@ -291,7 +300,7 @@ export function crearPlaneta(producto, parametros, globales) {
   return planeta;
 }
 
-function calcularTonos(color) {
+export function calcularTonos(color) {
   const hsl = color.getHSL({ h: 0, s: 0, l: 0 }, THREE.SRGBColorSpace);
   return {
     base: color.clone(),

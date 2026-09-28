@@ -1,13 +1,32 @@
+/* Color del astro enfocado y su tono luminoso (el del halo y la órbita). Registrados para que
+   la ficha pase de un color a otro con suavidad. */
+@property --color {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1697d5;
+}
+
+@property --brillo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #5cc0f0;
+}
+
 :root {
   color-scheme: dark;
   --espacio: #02060f;
   --tinta: #e6eff7;
   --tinta-suave: #8fa4b9;
-  --superficie: rgb(4 11 22 / 0.95);
-  --linea: rgb(143 164 185 / 0.24);
+  /* Cristal: deja intuir el universo detrás de la interfaz. */
+  --vidrio: rgb(5 12 24 / 0.64);
+  --vidrio-ligero: rgb(5 12 24 / 0.42);
+  --desenfoque: blur(20px) saturate(1.4);
+  --linea: rgb(143 164 185 / 0.16);
+  --linea-fuerte: rgb(143 164 185 / 0.38);
   --foco: #8fd3ff;
   --margen: 24px;
   --ancho-ficha: 360px;
+  --curva: cubic-bezier(0.2, 0.7, 0.2, 1);
   --fuente: 'Urbanist Variable', 'Urbanist', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -70,11 +89,10 @@ button {
   position: absolute;
   top: 0;
   left: 0;
-  padding-left: 0.3em; /* compensa el espacio tras la última letra */
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   white-space: nowrap;
   color: var(--tinta);
   text-shadow:
@@ -86,8 +104,41 @@ button {
   will-change: transform;
 }
 
+/* Sobre el astro, el nombre queda abajo, pegado a él, y el lema encima. */
+.etiqueta.arriba {
+  flex-direction: column-reverse;
+}
+
+.etiqueta-nombre {
+  padding-left: 0.3em; /* compensa el espacio tras la última letra */
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.etiqueta-lema {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s var(--curva);
+}
+
+.etiqueta.arriba .etiqueta-lema {
+  transform: translateY(3px);
+}
+
 .etiqueta.resaltada {
   color: #fff;
+}
+
+.etiqueta.resaltada .etiqueta-lema {
+  opacity: 1;
+  transform: none;
 }
 
 /* Interfaz */
@@ -151,24 +202,27 @@ button {
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid var(--linea);
-  background: rgb(4 11 22 / 0.55);
+  background: var(--vidrio-ligero);
+  -webkit-backdrop-filter: var(--desenfoque);
+  backdrop-filter: var(--desenfoque);
   font-size: 14px;
   font-weight: 500;
+  color: var(--tinta-suave);
   cursor: pointer;
   transition:
     border-color 0.2s ease,
-    background-color 0.2s ease;
+    color 0.2s ease;
 }
 
 .boton:hover {
-  border-color: rgb(143 164 185 / 0.5);
-  background: rgb(4 11 22 / 0.85);
+  border-color: var(--linea-fuerte);
+  color: var(--tinta);
 }
 
 .boton svg {
   flex: none;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   fill: currentColor;
 }
 
@@ -179,6 +233,11 @@ button {
 
 .boton[aria-pressed='true'] .icono-seguir {
   display: block;
+}
+
+.boton[aria-pressed='true'] {
+  border-color: var(--linea-fuerte);
+  color: var(--tinta);
 }
 
 .pista {
@@ -201,6 +260,22 @@ button {
   opacity: 0;
 }
 
+/* Tecla de atajo, solo donde hay teclado. */
+.tecla {
+  display: none;
+  padding: 3px 6px 4px;
+  border: 1px solid var(--linea-fuerte);
+  font: 600 11px/1 var(--fuente);
+  letter-spacing: 0.04em;
+  color: var(--tinta-suave);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tecla {
+    display: block;
+  }
+}
+
 /* Dock de productos */
 
 .dock {
@@ -209,10 +284,15 @@ button {
   right: 0;
   bottom: max(var(--margen), env(safe-area-inset-bottom));
   display: flex;
-  gap: 4px;
+  gap: 2px;
   width: max-content;
   max-width: calc(100% - 2 * var(--margen));
   margin: 0 auto;
+  padding: 4px;
+  border: 1px solid var(--linea);
+  background: var(--vidrio-ligero);
+  -webkit-backdrop-filter: var(--desenfoque);
+  backdrop-filter: var(--desenfoque);
   overflow-x: auto;
   scrollbar-width: none;
   transition: right 0.35s ease;
@@ -222,8 +302,8 @@ button {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 8px;
-  padding: 8px 10px 14px;
+  gap: 7px;
+  padding: 10px 10px 13px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -231,15 +311,25 @@ button {
   font-weight: 500;
   white-space: nowrap;
   color: var(--tinta-suave);
-  text-shadow: 0 0 8px var(--espacio);
-  transition: color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .dock button canvas {
   display: block;
+  transition: transform 0.25s var(--curva);
 }
 
-.dock button:hover,
+.dock button:hover {
+  color: var(--tinta);
+  background: rgb(143 164 185 / 0.08);
+}
+
+.dock button:hover canvas {
+  transform: translateY(-2px);
+}
+
 .dock button[aria-current='true'] {
   color: var(--tinta);
 }
@@ -249,9 +339,9 @@ button {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 2px;
-  width: 6px;
-  height: 6px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
   background: var(--color);
   transform: translateX(-50%);
 }
@@ -267,10 +357,21 @@ button {
   width: var(--ancho-ficha);
   max-height: calc(100% - 2 * var(--margen) - 72px);
   overflow-y: auto;
-  padding: 24px 28px 20px;
+  padding: 14px 28px 12px;
   border: 1px solid var(--linea);
-  background: var(--superficie);
+  /* El planeta queda a la izquierda de la ficha y la baña con su luz: el canto que mira hacia
+     él se enciende y el cristal recoge un reflejo de su color. */
+  border-left-color: color-mix(in srgb, var(--brillo) 75%, transparent);
+  background: var(--vidrio);
+  background:
+    radial-gradient(90% 65% at 0% 36%, color-mix(in srgb, var(--brillo) 20%, transparent), transparent),
+    var(--vidrio);
+  -webkit-backdrop-filter: var(--desenfoque);
+  backdrop-filter: var(--desenfoque);
   transform: translateY(-50%);
+  transition:
+    --color 0.7s ease,
+    --brillo 0.7s ease;
 }
 
 .ficha[hidden] {
@@ -278,7 +379,7 @@ button {
 }
 
 .ficha.entrando {
-  animation: entrar-lateral 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: entrar-lateral 0.45s var(--curva);
 }
 
 @keyframes entrar-lateral {
@@ -288,39 +389,86 @@ button {
   }
 }
 
+.ficha-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -10px 28px;
+}
+
 .ficha-volver {
-  align-self: flex-start;
-  margin-bottom: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+  transition: color 0.2s ease;
+}
+
+.ficha-volver:hover {
+  color: var(--tinta);
+}
+
+.ficha-barra .tecla {
+  margin-right: 10px;
 }
 
 .ficha-volver svg,
-.ficha-paso svg {
+.ficha-paso svg,
+.ficha-enlace svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
 }
 
-.ficha-cabecera {
-  display: grid;
-  gap: 24px;
+.ficha-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
+.ficha-contenido.entrando {
+  animation: cambiar-contenido 0.4s var(--curva);
+}
+
+@keyframes cambiar-contenido {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Como en los logos de Tandem: el cuadrado arriba y el nombre debajo. */
 .ficha-emblema canvas {
   display: block;
 }
 
+.ficha-emblema:empty {
+  display: none;
+}
+
 .ficha-nombre {
-  margin: 0 0 6px;
-  font-size: 40px;
-  font-weight: 650;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  margin: 20px 0 8px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .ficha-lema {
   max-width: 24ch;
   margin: 0;
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.3;
   color: var(--tinta-suave);
 }
@@ -330,11 +478,22 @@ button {
 }
 
 .ficha-enlace {
-  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
   margin-top: 24px;
-  font-weight: 600;
-  color: var(--foco);
-  text-underline-offset: 4px;
+  padding: 0 16px;
+  background: var(--color);
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--tinta-color, #fff);
+  text-decoration: none;
+  transition: filter 0.2s ease;
+}
+
+.ficha-enlace:hover {
+  filter: brightness(1.12);
 }
 
 .ficha-enlace[hidden] {
@@ -345,8 +504,8 @@ button {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 40px;
-  padding-top: 12px;
+  margin: 36px -10px 0;
+  padding-top: 10px;
   border-top: 1px solid var(--linea);
 }
 
@@ -354,9 +513,9 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
-  margin: 0 -6px;
-  padding: 0 6px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 10px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -370,9 +529,22 @@ button {
   color: var(--tinta);
 }
 
+.ficha-paso-emblema canvas {
+  display: block;
+  transition: transform 0.25s var(--curva);
+}
+
+.ficha-paso-emblema:empty {
+  display: none;
+}
+
+.ficha-paso:hover .ficha-paso-emblema canvas {
+  transform: translateY(-2px);
+}
+
 .ficha-paso svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .solo-lectores {
@@ -420,14 +592,43 @@ button {
     font-size: 18px;
   }
 
+  /* En el móvil el botón de pausa se queda en el icono; el texto sigue para los lectores de pantalla. */
+  .boton-pausa {
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+  }
+
+  .boton-pausa span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Todos los productos a la vista, en columnas iguales. */
+  .dock {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(48px, 1fr);
+    width: auto;
+    max-width: none;
+    margin: 0 max(var(--margen), env(safe-area-inset-left));
+    padding: 3px;
+  }
+
   .dock button {
-    padding: 6px 6px 12px;
-    font-size: 12px;
+    gap: 6px;
+    padding: 8px 0 11px;
+    font-size: 11px;
+    letter-spacing: -0.01em;
   }
 
   .dock button canvas {
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .pista {
@@ -440,6 +641,7 @@ button {
     display: none;
   }
 
+  /* La ficha pasa a ser una hoja inferior; la luz del planeta le llega desde arriba. */
   .ficha {
     top: auto;
     right: 0;
@@ -447,8 +649,13 @@ button {
     left: 0;
     width: auto;
     max-height: 55%;
-    padding: 14px 20px max(14px, env(safe-area-inset-bottom));
+    padding: 6px 20px max(8px, env(safe-area-inset-bottom));
     border-width: 1px 0 0;
+    border-top-color: color-mix(in srgb, var(--brillo) 75%, transparent);
+    background: var(--vidrio);
+    background:
+      radial-gradient(90% 120% at 50% 0%, color-mix(in srgb, var(--brillo) 15%, transparent), transparent),
+      var(--vidrio);
     transform: none;
   }
 
@@ -456,14 +663,19 @@ button {
     animation-name: entrar-abajo;
   }
 
-  .ficha-volver {
-    margin-bottom: 16px;
+  .ficha-barra {
+    margin-bottom: 8px;
   }
 
-  .ficha-cabecera {
+  .ficha-contenido {
+    display: grid;
     grid-template-columns: auto 1fr;
+    column-gap: 16px;
     align-items: center;
-    gap: 16px;
+  }
+
+  .ficha-emblema {
+    grid-row: span 2;
   }
 
   .ficha-emblema canvas {
@@ -472,15 +684,25 @@ button {
   }
 
   .ficha-nombre {
-    font-size: 28px;
+    align-self: end;
+    margin: 0 0 4px;
+    font-size: 30px;
   }
 
   .ficha-lema {
+    align-self: start;
     font-size: 16px;
   }
 
-  .ficha-nav {
+  .ficha-enlace {
+    grid-column: 1 / -1;
+    justify-self: start;
     margin-top: 16px;
+  }
+
+  .ficha-nav {
+    margin-top: 14px;
+    padding-top: 4px;
   }
 }
 
